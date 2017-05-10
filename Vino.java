@@ -4,9 +4,9 @@ public class Vino {
 	private String produttore;
 	private int annata;
 	private String regione;
-	private double prezzo;
+	private Prezzo prezzo;
 	private int qnt;
-	public Vino(String nome,String prezzo,int annata,String regione,double produttore,int qnt)
+	public Vino(String nome,Prezzo prezzo,int annata,String regione,String produttore,int qnt)
 	{
 		this.nome=nome;
 		this.produttore=produttore;
@@ -45,10 +45,10 @@ public class Vino {
 	public void setRegione(String regione) {
 		this.regione = regione;
 	}
-	public double getPrezzo() {
+	public Prezzo getPrezzo() {
 		return prezzo;
 	}
-	public void setPrezzo(double prezzo) {
+	public void setPrezzo(Prezzo prezzo) {
 		this.prezzo = prezzo;
 	}
 
