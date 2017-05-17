@@ -1,33 +1,151 @@
+package enoteca;
+
 import java.util.*;
+
+import javax.xml.stream.XMLInputFactory;
+import javax.xml.stream.XMLStreamConstants;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamReader;
+
+import java.io.*;
+
+import it.unibs.fp.mylib.InputDati;
+
 public class Enoteca 
 {
 	private ArrayList<Vino> vini= new ArrayList<Vino>();
 	
 
   //Stampare tutti i vini
+	public Enoteca(String filename) throws FileNotFoundException, XMLStreamException{
+		File file = null;
+		try{
+			file= new java.io.File(filename);
+		}catch (Exception e){
+			System.out.println(filename + "not found");
+		}
+		
+		XMLInputFactory factory = XMLInputFactory.newFactory();
+		XMLStreamReader reader = factory.createXMLStreamReader( new FileInputStream( file));
+		
+		String nome="", produttore="", regione="", valuta="";
+		int annata=0, qnt=0;
+		double numero=0;
+		Prezzo prezzo=null;
+		
+		boolean readName = false, readProduttore=false, readRegione=false,
+				readAnnata = false, readQnt = false, readNumero=false;
+		
+		
+		while(reader.hasNext()){
+			
+			switch (reader.next()){
+			case XMLStreamConstants.START_DOCUMENT:
+				System.out.println("Start reading document");
+				break;
+
+			case XMLStreamConstants.START_ELEMENT:
+				if("name".equals(reader.getLocalName())){
+					readName=true;
+				}
+				else {if("price".equals(reader.getLocalName())){
+					valuta=reader.getAttributeValue(0).toString().trim();
+					readNumero=true;					
+				}
+				else if("cont".equals(reader.getLocalName()))
+					readQnt=true;
+				else if("date".equals(reader.getLocalName()))
+					readAnnata=true;
+				else if("geo".equals(reader.getLocalName()))
+					readRegione=true;
+				else if("farmer".equals(reader.getLocalName()))
+					readProduttore=true;
+				}
+				//TODO if start_element == name => boolean readname==true
+				break;
+
+			case XMLStreamConstants.CHARACTERS:
+				//TODO if readname nome=reader.getText().trim() readname=false;
+				if(readName){
+					nome=reader.getText().toString().trim();
+					readName=false;
+				}
+				if(readNumero){
+					numero=Double.parseDouble(reader.getText().toString().trim());
+					prezzo= new Prezzo(numero, valuta);
+					readNumero=false;
+				}
+				if(readQnt){
+					String stringa=reader.getText().toString().trim();
+					if(!stringa.isEmpty()) qnt=Integer.parseInt(stringa);
+					readQnt=false;
+				}
+
+				if(readAnnata){
+					annata=Integer.parseInt(reader.getText().toString().trim());
+					readAnnata=false;
+				}
+
+				if(readRegione){
+					regione=reader.getText().trim();
+				}
+
+				if(readProduttore){
+					produttore=reader.getText().trim();
+					readProduttore=false;
+				}
+				break;
+
+
+
+			case XMLStreamConstants.END_ELEMENT:
+				switch(reader.getLocalName()){
+				case "wine":
+					Vino vino= new Vino(nome, prezzo, annata, regione, produttore, qnt);
+					if(vini.add(vino)){
+						//System.out.println("vino aggiunto  -" +vino.getNome());
+						nome=""; produttore=""; regione=""; valuta="";
+						annata=0; qnt=0;
+						numero=0;
+						prezzo=null;
+					}
+
+					break;
+				case "wines":
+					stampaVini();
+					break;
+				}
+				break;
+
+			case XMLStreamConstants.END_DOCUMENT:
+				System.out.println("end reading");
+				break;
+
+
+			}//switch
+		}//while
+	}//enoteca
 	
 	public void  stampaVini()
 	{
-		int k=0;
-		for(k=0;k<vini.size();k++)
-		{
-			Vino vino=vini.get(k);	
-			System.out.println("nome: "+vino.getNome()+" prezzo: "+ vino.getPrezzo());
-		}	
-	} 
+		for(Vino vino: vini)
+			System.out.println(vino.getNome() +" "+ vino.getPrezzo().getCosto() +vino.getPrezzo().getValuta() );		
+	}
+		
+ 
 
 		
-	//Stampare la quantità di bottiglie per ogni Vino	
+	//Stampare la quantitï¿½ di bottiglie per ogni Vino	
 	public void qntXvino()
 	{
 		int i=0;
 		for(i=0;i<vini.size();i++)
 		{
-			System.out.println("i vini "+vini.get(i).getNome()+"sono "+ vini.get(i).getQnt());
+			System.out.println("i vini "+vini.get(i).getNome()+" sono "+ vini.get(i).getQnt());
 		}
 	}
 	
-	//Stampare la quantità di Bottiglie per ogni Produttore
+	//Stampare la quantitï¿½ di Bottiglie per ogni Produttore
 	public void qntXproduttore()
 	{
 		int i =0;
@@ -57,7 +175,7 @@ public class Enoteca
 		
 	}
 	
-	public int nellaLista(Vector<String> vettore,String cercato)//questo metodo controlla se la stringa passata è presente nella lista di stringhe passata (ritorna: 1 se non è presente,0 altrimenti)
+	public int nellaLista(Vector<String> vettore,String cercato)//questo metodo controlla se la stringa passata ï¿½ presente nella lista di stringhe passata (ritorna: 1 se non ï¿½ presente,0 altrimenti)
 	{
 		int noinlista=1;
 		int siinlista=0;
@@ -82,7 +200,7 @@ public class Enoteca
 		{
 			if(vini.get(i).getAnnata()>=inizio && vini.get(i).getAnnata()<fine) 
 			{
-				System.out.print("il vino"+vini.get(i).getNome()+" è compreso nell'annata specificata");
+				System.out.print("il vino"+vini.get(i).getNome()+" ï¿½ compreso nell'annata specificata");
 			}
 		}
 	}
@@ -93,8 +211,8 @@ public class Enoteca
 		final double tassoDE = 0.8957;
 		double totale=0;
 		String valutaRis=InputDati.leggiStringaNonVuota("inserisci la valuta desiderata");
-		String euro="euro";
-		String dollari="dollari";
+		String euro="â‚¬";
+		String dollari="$";
 		for(int i=0;i<vini.size();i++)//con questo for calcolo in guadagno totale in dollari
 		{
 			Vino vino= vini.get(i);
@@ -111,20 +229,14 @@ public class Enoteca
 			}
 		}
 		if(valutaRis.equals(dollari))//stampa il possibile guadagno in dollari
-			System.out.println("il possibile guadagno in dollari è: "+totale);
+			System.out.println("il possibile guadagno in dollari ï¿½: "+totale);
 		if(valutaRis.equals(euro))//stampa il possibile guadagno in euro
 		{
 			totale*=tassoDE;
-			System.out.println("il possibile guadagno in euro è: "+totale);
+			System.out.println("il possibile guadagno in euro ï¿½: "+totale);
 		}
 				
 	}
-	
-	
-	
-	
-	
-	
 	
 	
 	

@@ -1,7 +1,13 @@
+package enoteca;
 
 public class Prezzo {
+	
 	private double costo;
 	private String valuta;
+	
+	public Prezzo(){
+		
+	}
 	public Prezzo(double costo,String valuta )
 	{
 		this.costo=costo;
